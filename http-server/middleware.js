@@ -1,3 +1,4 @@
+//dum way of doing auth stuff
 const express = require("express");
 const app = express();
 
