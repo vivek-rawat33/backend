@@ -9,6 +9,15 @@ app.use((req, res, next) => {
   req.startTime = new Date().getTime();
   next();
 });
+
+function authenticate(obj) {
+  const schema = zod.object({
+    username: zod.string(),
+    password: zod.string(),
+  });
+  const response = schema.safeParse(obj);
+  return response;
+}
 function userMiddleWare(req, res, next) {
   const username = req.headers.username;
   const password = req.headers.password;
@@ -33,18 +42,31 @@ function middleWare2(req, res, next) {
   }
 }
 
-app.get("/checkup", userMiddleWare, middleWare2, (req, res) => {
+app.get("/checkup", (req, res) => {
   const endTime = new Date().getTime();
   console.log(`time to execute the request is ${endTime - req.startTime}ms`);
+  const input = authenticate(req.body);
+  if (!input.success) {
+    res.status(411).json({
+      msg: "invalid input",
+    });
+    return;
+  }
   res.send("Your health is good");
 });
 
-app.get("/kidney-checkup", (req, res) => {
+app.post("/kidney-checkup", (req, res) => {
   const kidneys = req.body.kidney;
   const response = schema.safeParse(kidneys);
-  res.send({
-    response,
-  });
+  if (!response.success) {
+    res.status(411).json({
+      msg: "invalid input",
+    });
+  } else {
+    res.send({
+      response,
+    });
+  }
 });
 
 app.get("/heart-checkup", (req, res) => {
